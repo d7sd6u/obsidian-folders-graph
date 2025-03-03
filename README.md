@@ -6,7 +6,7 @@ Adds folders as nodes to graph views. Use [virtual-dirs](https://github.com/d7sd
 
 ![](./docs/localgraphview.png)
 
-![](./docs/graphviewhops.mkv)
+https://github.com/user-attachments/assets/c7522735-3333-42c2-99f5-cf61e4c5e039
 
 ## Other plugins
 
