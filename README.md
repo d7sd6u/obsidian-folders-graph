@@ -8,7 +8,7 @@ Add folders as nodes to graph views. Use [virtual-dirs](https://github.com/d7sd6
 
 https://github.com/user-attachments/assets/c7522735-3333-42c2-99f5-cf61e4c5e039
 
-## Other plugins## Other plugins
+## Other plugins
 
 - [lazy-cached-vault-load](https://github.com/d7sd6u/obsidian-lazy-cached-vault-load) - Reduces startup time on mobile to 2-3 seconds, even with a vault containing 30k+ notes.
 - [reveal-folded](https://github.com/d7sd6u/obsidian-reveal-folded) - Adds a command that reveals the current file in the file explorer while collapsing all other items.
