@@ -1,7 +1,7 @@
 {
 	"id": "folders-graph",
 	"name": "Folders Graph",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"minAppVersion": "1.8.0",
 	"description": "Add folders to graph views.",
 	"author": "d7sd6u",
