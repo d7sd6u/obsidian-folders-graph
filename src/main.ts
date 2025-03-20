@@ -8,9 +8,15 @@ import { LocalGraphView } from "../obsidian-typings/src/obsidian/internals/Inter
 import { GraphColorAttributes } from "../obsidian-typings/src/obsidian/internals/InternalPlugins/Graph/GraphColorAttributes";
 
 import PluginWithSettings from "../obsidian-reusables/src/PluginWithSettings";
+import { SettingsTab } from "./settings";
 
-export default class Main extends PluginWithSettings({}) {
-	override onload(): void {
+export default class Main extends PluginWithSettings({
+	emptyIndexFileColor: getColor("cyan"),
+	rootIndexFileColor: getColor("pink"),
+	nonEmptyIndexFileColor: getColor("blue"),
+}) {
+	override async onload() {
+		await this.initSettings(SettingsTab);
 		this.refreshGraphLeaves();
 
 		this.registerEvent(
@@ -45,25 +51,11 @@ export default class Main extends PluginWithSettings({}) {
 	private resolvedLinksOverrides: Record<string, Record<string, number>> = {};
 	private folderToVirtualIndexes = new Map<string, string>();
 	private fileFilterOverrides: Record<string, GraphColorAttributes> = {};
-	private updateCacheWithVirtualFolders() {
+	public updateCacheWithVirtualFolders() {
 		const fileFilterOverrides: Record<string, GraphColorAttributes> = {};
 		const resolvedLinksOverrides = {
 			...this.app.metadataCache.resolvedLinks,
 		};
-
-		const pallete = {
-			red: { light: 0xe93147, dark: 0xfb464c },
-			orange: { light: 0xec7500, dark: 0xe9973f },
-			yellow: { light: 0xe0ac00, dark: 0xe0de71 },
-			green: { light: 0x08b94e, dark: 0x44cf6e },
-			cyan: { light: 0x00bfbc, dark: 0x53dfdd },
-			blue: { light: 0x086ddd, dark: 0x027aff },
-			purple: { light: 0x7852ee, dark: 0xa882ff },
-			pink: { light: 0xd53984, dark: 0xfa99cd },
-		};
-		const emptyIndexFileColor = pallete.cyan.dark;
-		const rootIndexFileColor = pallete.pink.dark;
-		const nonEmptyIndexFileColor = pallete.blue.dark;
 
 		const folderToRealIndexes = new Map<string, string>();
 		for (const node of this.app.vault.getAllLoadedFiles()) {
@@ -75,7 +67,7 @@ export default class Main extends PluginWithSettings({}) {
 			) {
 				folderToRealIndexes.set(node.parent.path, node.path);
 				fileFilterOverrides[node.path] = {
-					rgb: emptyIndexFileColor,
+					rgb: hexStringToNumber(this.settings.emptyIndexFileColor),
 					a: 1,
 				};
 			}
@@ -123,8 +115,10 @@ export default class Main extends PluginWithSettings({}) {
 			fileFilterOverrides[indexFile] = {
 				rgb:
 					indexFile === "Root.dir" || indexFile === "Root.md"
-						? rootIndexFileColor
-						: nonEmptyIndexFileColor,
+						? hexStringToNumber(this.settings.rootIndexFileColor)
+						: hexStringToNumber(
+								this.settings.nonEmptyIndexFileColor,
+							),
 				a: realIndex ? 1 : 0.5,
 			};
 			const indexFileLinks = resolvedLinksOverrides[indexFile] ?? {};
@@ -137,6 +131,17 @@ export default class Main extends PluginWithSettings({}) {
 		this.resolvedLinksOverrides = resolvedLinksOverrides;
 		this.folderToVirtualIndexes = folderToVirtualIndexes;
 		this.fileFilterOverrides = fileFilterOverrides;
+	}
+	public rerenderGraphViews() {
+		for (const leaf of this.getLeavesOfTypeGraph()) {
+			const engine =
+				"dataEngine" in leaf.view
+					? leaf.view.dataEngine
+					: "engine" in leaf.view
+						? leaf.view.engine
+						: undefined;
+			engine?.render();
+		}
 	}
 
 	private patchGraphEngine(
@@ -190,4 +195,23 @@ export default class Main extends PluginWithSettings({}) {
 			...this.app.workspace.getLeavesOfType("localgraph"),
 		];
 	}
+}
+
+type ExtendedColor =
+	| "red"
+	| "orange"
+	| "yellow"
+	| "green"
+	| "cyan"
+	| "blue"
+	| "purple"
+	| "pink";
+
+function getColor(c: ExtendedColor) {
+	return window
+		.getComputedStyle(document.body)
+		.getPropertyValue("--color-" + c);
+}
+function hexStringToNumber(hex: string) {
+	return Number("0x" + hex.slice(1));
 }
