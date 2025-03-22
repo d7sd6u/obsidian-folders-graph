@@ -166,10 +166,6 @@ export default class Main extends PluginWithSettings({
 						...plugin.fileFilterOverrides,
 					};
 
-					const realResolvedLinks =
-						this.app.metadataCache.resolvedLinks;
-					this.app.metadataCache.resolvedLinks =
-						plugin.resolvedLinksOverrides;
 					const disable = around(MetadataCache.prototype, {
 						getCachedFiles(next) {
 							return function (this: MetadataCache, ...args) {
@@ -181,9 +177,17 @@ export default class Main extends PluginWithSettings({
 							};
 						},
 					});
-					next.apply(this, args);
-					disable();
+					const realResolvedLinks =
+						this.app.metadataCache.resolvedLinks;
+					this.app.metadataCache.resolvedLinks =
+						plugin.resolvedLinksOverrides;
+					try {
+						next.apply(this, args);
+					} catch (e) {
+						console.error("Error during graph render: ", e);
+					}
 					this.app.metadataCache.resolvedLinks = realResolvedLinks;
+					disable();
 				};
 			},
 		});
